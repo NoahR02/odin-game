@@ -1,32 +1,18 @@
-# Prerequisites
-*.d
+# IDE's
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+.idea
+.vs
+.vscode
 
-# Precompiled Headers
-*.gch
-*.pch
+# Config files.
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+// Ignore the odin language server config file.
+ols.json
 
-# Fortran module files
-*.mod
-*.smod
+# Build Files
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+// Ignore all of the files inside build.
+build/*
 
-# Executables
-*.exe
-*.out
-*.app
+// Keep one file so git can add the empty directory.
+!build/.gitkeep
