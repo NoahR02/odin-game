@@ -7,7 +7,10 @@ import "vendor:glfw"
 
 import "engine/perp_camera"
 import "engine"
+import ws "engine/window"
+import "engine/engine_gui"
 
+import "core:mem"
 
 import imgui  "shared:odin-imgui"
 import imgl   "shared:odin-imgui/impl/opengl"
@@ -17,28 +20,14 @@ import "core:strings"
 GL_MAJOR_VERSION :: 4
 GL_MINOR_VERSION :: 5
 
-main :: proc() {
-  
-  if !bool(glfw.Init()) {
-    fmt.eprintln("GLFW has failed to load.")
-    return
-  }
+_main :: proc() {
 
   glfw.WindowHint(glfw.SAMPLES, 4)
-  window_handle := glfw.CreateWindow(1600, 900, "odin-game-engine", nil, nil)
-  defer glfw.Terminate()
-  defer glfw.DestroyWindow(window_handle)
+  window, window_err := ws.create(1600, 900, "odin-game")
+  defer ws.destroy(window)
+  if window_err do return
 
-  if window_handle == nil {
-    fmt.eprintln("GLFW has failed to load the window.")
-    return
-  }
-
-  glfw.MakeContextCurrent(window_handle)
-  // Load OpenGL function pointers with the specficed OpenGL major and minor version.
-  gl.load_up_to(GL_MAJOR_VERSION, GL_MINOR_VERSION, glfw.gl_set_proc_address)
-
-  imgui_state := init_imgui(window_handle)
+  gui := engine_gui.create(window)
 
   // ----------
 
@@ -106,21 +95,22 @@ main :: proc() {
 
   delta_time: f64
   frame_time: f64
-  for !glfw.WindowShouldClose(window_handle) {
+
+  for !ws.should_close(window) {
     current := glfw.GetTime()
     delta_time = current - frame_time
     frame_time = current
 
     // Process all incoming events like keyboard press, window resize, and etc.
-    glfw.PollEvents()
-    perp_camera.handle_input(&camera, window_handle, delta_time)
+    ws.poll_events()
+    perp_camera.handle_input(&camera, window.window_handle, delta_time)
 
     // Clear the screen.
     gl.ClearColor(42.0/255, 75.0/255, 92.0/255, 1.0)
     gl.Enable(gl.DEPTH_TEST)
     gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-    glfw.SetInputMode(window_handle, glfw.CURSOR, glfw.CURSOR_DISABLED)
+    glfw.SetInputMode(window.window_handle, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
     // Draw Scene
     gl.BindVertexArray(vao)
@@ -156,57 +146,37 @@ main :: proc() {
     gl.UniformMatrix4fv(gl.GetUniformLocation(light_program, "u_model"), 1, gl.FALSE, &light_model[0][0])
     gl.DrawArrays(gl.TRIANGLES, 0, 36)
     // End Scene
+    
+    engine_gui.update()
 
 
-    // Update glfw specfic info.
-    imglfw.update_display_size()
-    //imglfw.update_mouse()
-    imglfw.update_dt()
+    {
+      imgui.new_frame()
+        engine_gui.draw_engine_gui(gui)
+      imgui.end_frame()
+      engine_gui.render(gui)
+    }
+    
 
-    imgui.new_frame()
-
-      {
-        imgui.push_style_var(imgui.Style_Var.FramePadding, imgui.Vec2{12.0, 12.0})
-        if imgui.begin_main_menu_bar() {
-          defer imgui.end_main_menu_bar()
-          imgui.pop_style_var(1)
-
-          imgui.push_style_var(imgui.Style_Var.ItemSpacing, imgui.Vec2{20.0, 2.0})
-            imgui.text_colored({20, 50, 0, 255}, "odin-game-engine")
-          imgui.pop_style_var(1)
-
-          if imgui.begin_menu("File") {
-            defer imgui.end_menu()
-            imgui.button("Open")
-            imgui.button("Edit")
-            imgui.button("Save")
-          }
-
-          if imgui.begin_menu("Help") {
-            defer imgui.end_menu()
-            imgui.button("Website")
-          }
-
-        }
-
-      }
-      
-
-    imgui.end_frame()
-
-    imgui.render()
-    imgl.imgui_render(imgui.get_draw_data(), imgui_state)
-
-    glfw.SwapBuffers(window_handle)
+    
+    ws.swap_buffers(window)
   }
 
 }
 
-init_imgui :: proc(window: glfw.WindowHandle) -> (state: imgl.OpenGL_State) {
-  imgui.create_context()
-  imgui.style_colors_dark()
-  imglfw.setup_state(window, true)
-  imgl.setup_state(&state)
+main :: proc() {
 
-  return
+  track: mem.Tracking_Allocator
+  mem.tracking_allocator_init(&track, context.allocator)
+  context.allocator = mem.tracking_allocator(&track)
+  _main()
+ 
+  for _, v in track.allocation_map {
+    fmt.eprintf("%v Leaked %v bytes.", v.location, v.size)
+  }
+ 
+  for v in track.bad_free_array {
+    fmt.eprintf("%v Bad free.", v.location)
+  }
+ 
 }
