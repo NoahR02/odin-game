@@ -2,7 +2,7 @@
 
 ## Download Instructions:
 ```shell
-git clone https://github.com/NoahR02/odin-game-engine.git --recursive
+git clone https://github.com/NoahR02/odin-game.git --recursive
 ```
 
 ## Build Instructions:
