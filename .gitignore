@@ -8,11 +8,3 @@
 
 // Ignore the odin language server config file.
 ols.json
-
-# Build Files
-
-// Ignore all of the files inside build.
-build/*
-
-// Keep one file so git can add the empty directory.
-!build/.gitkeep
