@@ -1,4 +1,4 @@
-package odin_game_engine
+package odin_game
 
 import "core:fmt"
 import gl "vendor:OpenGL"
@@ -8,13 +8,12 @@ import "vendor:glfw"
 import "engine/perp_camera"
 import "engine"
 import ws "engine/window"
-import "engine/engine_gui"
 
 import "core:mem"
 
-import imgui  "shared:odin-imgui"
-import imgl   "shared:odin-imgui/impl/opengl"
-import imglfw "shared:odin-imgui/impl/glfw"
+import imgui  "third-party/odin-imgui"
+import imgl   "third-party/odin-imgui/impl/opengl"
+import imglfw "third-party/odin-imgui/impl/glfw"
 import "core:strings"
 
 GL_MAJOR_VERSION :: 4
@@ -26,8 +25,6 @@ _main :: proc() {
   window, window_err := ws.create(1600, 900, "odin-game")
   defer ws.destroy(window)
   if window_err do return
-
-  gui := engine_gui.create(window)
 
   // ----------
 
@@ -146,17 +143,6 @@ _main :: proc() {
     gl.UniformMatrix4fv(gl.GetUniformLocation(light_program, "u_model"), 1, gl.FALSE, &light_model[0][0])
     gl.DrawArrays(gl.TRIANGLES, 0, 36)
     // End Scene
-    
-    engine_gui.update()
-
-
-    {
-      imgui.new_frame()
-        engine_gui.draw_engine_gui(gui)
-      imgui.end_frame()
-      engine_gui.render(gui)
-    }
-    
 
     
     ws.swap_buffers(window)

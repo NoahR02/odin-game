@@ -1,4 +1,0 @@
-[submodule "third-party/odin-imgui"]
-	path = third-party/odin-imgui
-	url = git@github.com:NoahR02/odin-imgui.git
-	branch = switch_to_vendor_opengl_and_glfw
