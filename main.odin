@@ -11,9 +11,6 @@ import ws "engine/window"
 
 import "core:mem"
 
-import imgui  "third-party/odin-imgui"
-import imgl   "third-party/odin-imgui/impl/opengl"
-import imglfw "third-party/odin-imgui/impl/glfw"
 import "core:strings"
 
 GL_MAJOR_VERSION :: 4
